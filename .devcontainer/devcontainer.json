@@ -1,0 +1,51 @@
+{
+  "name": "Retiros SetorH Dev Environment",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "21",
+      "jdk": "ms"
+    }
+  },
+  "onCreateCommand": "bash .devcontainer/install.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "jebbs.plantuml",
+        "well-it-is-what-it-is.puml",
+        "yzhang.markdown-all-in-one",
+        "bierner.markdown-preview-github-styles",
+        "redhat.vscode-yaml",
+        "esbenp.prettier-vscode"
+      ],
+      "settings": {
+        "plantuml.render": "Local",
+        "plantuml.java": "/usr/local/sdkman/candidates/java/current/bin/java",
+        "plantuml.jarArgs": ["-DPLANTUML_LIMIT_SIZE=81920"],
+        "plantuml.exportFormat": "svg",
+        "plantuml.exportOutDir": "docs/diagrams/out",
+        "plantuml.exportSubFolder": false,
+        "plantuml.exportConcurrency": 3,
+        "plantuml.previewAutoUpdate": true,
+        "plantuml.urlFormat": "svg",
+        "plantuml.urlResult": "MarkDown",
+        "files.associations": {
+          "*.puml": "plantuml",
+          "*.pu": "plantuml",
+          "*.plantuml": "plantuml",
+          "*.wsd": "plantuml"
+        },
+        "editor.wordWrap": "on",
+        "editor.formatOnSave": true,
+        "[plantuml]": {
+          "editor.tabSize": 2
+        },
+        "markdown.preview.breaks": true
+      }
+    }
+  },
+
+  "forwardPorts": [],
+  "remoteUser": "vscode",
+  "postCreateCommand": "echo 'PlantUML environment ready! Open any .puml file and press Alt+D to preview.'"
+}
