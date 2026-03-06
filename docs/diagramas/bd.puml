@@ -1,0 +1,254 @@
+@startuml Banco de Dados - Estrutura e Relacionamentos
+!define PK <b><color:#FFD700>PK</color></b>
+!define FK <b><color:#FF6B6B>FK</color></b>
+!define UK <b><color:#34D399>UK</color></b>
+!define IDX <b><color:#3B82F6>IDX</color></b>
+
+skinparam linetype ortho
+skinparam roundcorner 8
+skinparam shadowing false
+skinparam backgroundColor #ffffff
+skinparam defaultFontColor #000
+skinparam defaultFontSize 11
+
+skinparam entity {
+  BackgroundColor #ffffff
+  BorderColor #7C3AED
+  FontColor #000000
+  HeaderBackgroundColor #ffffff
+}
+
+hide circle
+hide methods
+
+' ================================
+' SCHEMA _meta
+' ================================
+
+package "_meta — Controle Global" {
+
+  entity "_meta.eventos" as eventos {
+    PK id : SERIAL
+    --
+    UK slug : TEXT NOT NULL
+    nome : TEXT NOT NULL
+    ativo : BOOLEAN DEFAULT TRUE
+    padrao : BOOLEAN DEFAULT FALSE
+    inscricoes_abertas : BOOLEAN DEFAULT FALSE
+    inscricoes_abertas_de : TIMESTAMP
+    inscricoes_abertas_ate : TIMESTAMP
+    criado_em : TIMESTAMP DEFAULT NOW()
+    FK criado_por : INTEGER → usuarios_admin.id
+  }
+
+  entity "_meta.colunas_schema" as colunas_schema {
+    PK id : SERIAL
+    --
+    FK evento_id : INTEGER NOT NULL → eventos.id
+    nome : TEXT NOT NULL
+    label : TEXT NOT NULL
+    tipo : TEXT NOT NULL
+    obrigatorio : BOOLEAN DEFAULT TRUE
+    visibilidade : TEXT DEFAULT 'public'
+    visivel_para : TEXT[]
+    ordem : INTEGER DEFAULT 0
+  }
+
+  entity "_meta.usuarios_admin" as usuarios_admin {
+    PK id : SERIAL
+    --
+    nome : TEXT NOT NULL
+    login : TEXT UNIQUE NOT NULL
+    senha_hash : TEXT NOT NULL
+    funcao : TEXT NOT NULL
+    ativo : BOOLEAN DEFAULT TRUE
+    senha_inicial : BOOLEAN DEFAULT TRUE
+    criado_em : TIMESTAMP DEFAULT NOW()
+    FK congregacao_id : INTEGER → congregacoes.id
+    FK criado_por : INTEGER → usuarios_admin.id
+  }
+
+  entity "_meta.audit_log" as audit_log {
+    PK id : SERIAL
+    --
+    evento_slug : TEXT
+    FK usuario_id : INTEGER → usuarios_admin.id
+    acao : TEXT NOT NULL
+    entidade : TEXT
+    entidade_id : TEXT
+    payload : JSONB
+    ip : TEXT
+    criado_em : TIMESTAMP DEFAULT NOW()
+  }
+
+  entity "_meta.congregacoes" as congregacoes {
+    PK id : SERIAL
+    --
+    nome : TEXT NOT NULL
+  }
+
+}
+
+' ================================
+' SCHEMA _sistema
+' ================================
+
+package "_sistema — Infraestrutura Transversal" {
+
+  entity "_sistema.sessoes_jovens" as sessoes_jovens {
+    PK id : SERIAL
+    --
+    evento_slug : TEXT NOT NULL
+    token : TEXT UNIQUE NOT NULL
+    expira_em : TIMESTAMP NOT NULL
+    criado_em : TIMESTAMP DEFAULT NOW()
+    FK inscricao_id : INTEGER NOT NULL → retiro_AAAA.inscricoes.id
+    FK inscricao_codigo : UUID NOT NULL → retiro_AAAA.inscricoes.codigo_unico
+  }
+
+  entity "_sistema.documentos" as documentos {
+    PK id : SERIAL
+    --
+    nome : TEXT NOT NULL
+    caminho : TEXT NOT NULL
+    enviado_por : TEXT NOT NULL
+    evento_slug : TEXT NOT NULL
+    FK inscricao_codigo : UUID NOT NULL → retiro_AAAA.inscricoes.codigo_unico
+    FK lider_id : INTEGER → usuarios_admin.id
+    enviado_em : TIMESTAMP DEFAULT NOW()
+  }
+
+}
+
+' ================================
+' SCHEMA retiro_AAAA
+' ================================
+
+package "retiro_AAAA — Dados do Evento"{
+
+  entity "retiro_AAAA.equipes" as equipes {
+    PK id : SERIAL
+    --
+    nome : TEXT NOT NULL
+    cor : TEXT NOT NULL
+  }
+
+  entity "retiro_AAAA.inscricoes" as inscricoes {
+    PK id : SERIAL
+    --
+    IDX UK codigo_unico : UUID DEFAULT gen_random_uuid()
+    IDX FK congregacao : TEXT NOT NULL → _meta.congregacoes.nome
+    FK equipe_id : INTEGER → equipes.id
+    cancelado : BOOLEAN DEFAULT FALSE
+    motivo_cancelamento : TEXT
+    criado_em : TIMESTAMP DEFAULT NOW()
+    atualizado_em : TIMESTAMP DEFAULT NOW()
+    .. colunas dinâmicas (via _meta.colunas_schema) ..
+    nome_completo : TEXT
+    email : TEXT
+    documento_pessoal : TEXT
+    FK tamanho_camiseta_enum_tamanhos : INTEGER → enum_tamanhos.id
+    FK tipo_inscricao_enum_tipos : INTEGER → enum_tipos.id
+  }
+
+  entity "retiro_AAAA.pagamentos" as pagamentos {
+    PK id : SERIAL
+    --
+    FK inscricao_codigo : UUID NOT NULL → inscricoes.codigo_unico
+    tipo : TEXT NOT NULL
+    modalidade : TEXT
+    gateway : TEXT
+    gateway_id : TEXT
+    IDX status : TEXT NOT NULL
+    valor : DECIMAL(10,2)
+    payload_raw : JSONB
+    marcado_manual : BOOLEAN DEFAULT FALSE
+    data_pagamento : DATE
+    forma_pagamento : TEXT
+    observacao : TEXT
+    FK marcado_por : INTEGER → usuarios_admin.id
+    criado_em : TIMESTAMP DEFAULT NOW()
+  }
+
+  entity "retiro_AAAA.enum_tamanhos" as enum_tamanhos {
+    PK id : SERIAL
+    --
+    valor : TEXT NOT NULL
+    meta : TEXT
+  }
+
+  entity "retiro_AAAA.enum_tipos" as enum_tipos {
+    PK id : SERIAL
+    --
+    valor : TEXT NOT NULL
+    meta : TEXT
+  }
+
+  entity "retiro_AAAA.enum_N" as enum_n {
+    PK id : SERIAL
+    --
+    valor : TEXT NOT NULL
+    meta : TEXT
+    .. n tabelas por evento ..
+  }
+
+}
+
+' ================================
+' RELATIONSHIPS — _meta internal
+' ================================
+
+' eventos 1:N colunas_schema
+eventos ||--o{ colunas_schema : "1 evento\ntem N colunas"
+
+' usuarios_admin self-referential
+usuarios_admin }o--o| usuarios_admin : "criado_por\n(self-ref)"
+
+' usuarios_admin 1:N audit_log
+usuarios_admin ||--o{ audit_log : "1 admin\nN audit entries"
+
+' congregacoes 1:N usuarios_admin (funcao líder)
+
+congregacoes ||--o{ usuarios_admin : "1 congregação\nN líderes" }
+
+' ================================
+' RELATIONSHIPS — retiro_AAAA internal
+' ================================
+
+' equipes 1:N inscricoes
+equipes ||--o{ inscricoes : "1 equipe\nN inscritos"
+
+' inscricoes 1:N pagamentos (via UUID)
+inscricoes ||--o{ pagamentos : "1 inscricao\nN pagamentos"
+
+' inscricoes N:1 enum_tamanhos
+enum_tamanhos ||--o{ inscricoes : "enum"
+
+' inscricoes N:1 enum_tipos
+enum_tipos ||--o{ inscricoes : "enum"
+
+' usuarios_admin 1:N pagamentos (marcado_por)
+usuarios_admin ||--o{ pagamentos : "marcado_por"
+
+' ================================
+' RELATIONSHIPS — cross-schema
+' ================================
+
+' _meta.congregacoes 1:N retiro_AAAA.inscricoes
+_meta.congregacoes ||--o{ retiro_AAAA.inscricoes : "1 congregação\nN inscritos"
+
+' _meta.usuarios_admin → _sistema.documentos (lider_id)
+usuarios_admin ||--o{ documentos : "lider envia\ndocumento"
+
+' _sistema.sessoes_jovens → retiro_AAAA.inscricoes (lógico via UUID + evento_slug)
+sessoes_jovens ..> inscricoes : "<<logical>>\ninscricao_codigo\n+ evento_slug"
+
+' _sistema.documentos → retiro_AAAA.inscricoes (lógico via UUID + evento_slug)
+documentos ..> inscricoes : "<<logical>>\ninscricao_codigo\n+ evento_slug"
+
+' _meta.colunas_schema → retiro_AAAA.inscricoes (gera colunas dinâmicas)
+colunas_schema ..> inscricoes : "<<generates>>\ncolunas dinâmicas"
+
+' _meta.eventos → retiro_AAAA (slug resolve schema)
+eventos ..> inscricoes : "<<slug>>\nresolve schema"
+@enduml
