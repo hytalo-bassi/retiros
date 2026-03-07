@@ -1,9 +1,5 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
-    "paths": {
-      "@app/shared": ["packages/shared/src/index.ts"]
-    },
     "composite": true,
     "declaration": true,
     "declarationMap": true,
