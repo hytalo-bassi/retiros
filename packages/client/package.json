@@ -1,0 +1,9 @@
+{
+  "name": "@app/client",
+  "dependencies": {
+    "@app/shared": "workspace:*"
+  },
+  "scripts": {
+    "dev": "tsx watch src/index.ts"
+  }
+}

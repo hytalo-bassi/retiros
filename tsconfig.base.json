@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "baseUrl": ".",
+    "paths": {
+      "@app/shared": ["packages/shared/src/index.ts"]
+    },
+    "composite": true,
+    "declaration": true,
+    "declarationMap": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true
+  },
+  "references": [
+    { "path": "packages/shared" },
+    { "path": "packages/client" },
+    { "path": "packages/server" }
+  ]
+}
