@@ -1,13 +1,20 @@
 {
   "name": "Retiros SetorH Dev Environment",
-  "image": "mcr.microsoft.com/devcontainers/base:ubuntu-24.04",
+  "dockerComposeFile": ["compose.dev.yaml"],
+  "workspaceFolder": "/workspaces/retiros_setorh",
+  "service": "devcontainer",
+  "runServices": ["postgres", "server"],
   "features": {
     "ghcr.io/devcontainers/features/java:1": {
       "version": "21",
       "jdk": "ms"
+    },
+    "ghcr.io/devcontainers/features/node:1": {
+      "version": "22",
+      "installYarnUsingApt": false
     }
   },
-  "onCreateCommand": "bash .devcontainer/install.sh",
+  "onCreateCommand": "bash .devcontainer/install.sh && corepack enable && corepack prepare pnpm@latest --activate",
   "customizations": {
     "vscode": {
       "extensions": [
@@ -45,7 +52,11 @@
     }
   },
 
-  "forwardPorts": [],
+  "forwardPorts": [5432, 3001],
+  "portsAttributes": {
+    "5432": { "label": "Postgres" },
+    "3001": { "label": "Server" }
+  },
   "remoteUser": "vscode",
   "postCreateCommand": "echo 'PlantUML environment ready! Open any .puml file and press Alt+D to preview.'"
 }

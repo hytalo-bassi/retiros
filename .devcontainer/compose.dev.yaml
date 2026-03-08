@@ -1,0 +1,51 @@
+services:
+  devcontainer:
+    image: mcr.microsoft.com/devcontainers/base:ubuntu-24.04
+    volumes:
+      - ..:/workspaces/retiros_setorh:cached
+    command: sleep infinity
+    networks:
+      - app-network
+
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: retiros_setorh
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
+
+  server:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile.server
+    volumes:
+      - ..:/app:cached
+      - /app/node_modules
+    working_dir: /app
+    command: pnpm --filter @app/server dev
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres@postgres:5432/retiros_setorh
+    networks:
+      - app-network
+
+volumes:
+  postgres_data:
+
+networks:
+  app-network:
+    driver: bridge
