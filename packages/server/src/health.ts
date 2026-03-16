@@ -14,6 +14,7 @@ export type StatusServicoGeral = 'healthy' | 'degraded' | 'loading';
 /** Mapa de serviços monitorados e seus respectivos status. */
 export type Servicos = {
   db: StatusServico;
+  web: StatusServico;
 };
 
 /**
@@ -28,14 +29,15 @@ export type Servicos = {
  * health.quandoSaudavel(() => iniciarServidor());
  *
  * iniciarBd()
- *   .then(() => health.setBd('healthy'))
- *   .catch(() => health.setBd('error'));
+ *   .then(() => health.set('db', 'healthy'))
+ *   .catch(() => health.set('db', 'error'));
  * ```
  */
 export class Health {
   /** Estado atual de cada serviço monitorado. */
   private servicos: Servicos = {
     db: 'loading',
+    web: 'loading',
   };
 
   /** Fila de funções aguardando o sistema ficar saudável. */
@@ -45,28 +47,29 @@ export class Health {
   private callbacksDegradados: Array<() => void> = [];
 
   /**
-   * Atualiza o status do serviço de banco de dados.
+   * Atualiza o status de serviços.
    *
    * Após a atualização, tenta liberar automaticamente os callbacks pendentes
    * caso o sistema inteiro esteja saudável.
    *
-   * @param status - Novo status do banco de dados.
+   * @param service - Nome do serviço a ser atualizado (ex.: 'db', 'web').
+   * @param status - Novo status do serviço.
    * @param error  - Erro associado à falha de conexão, se aplicável. Será impresso automaticamente.
    *
    * @example
    * ```ts
-   * health.setBd('healthy'); // banco pronto
-   * health.setBd('error', new Error('Falha na conexão'));// falha na conexão
+   * health.set('db', 'healthy'); // banco pronto
+   * health.set('db', 'error', new Error('Falha na conexão'));// falha na conexão
    * ```
    */
-  setBd(status: StatusServico, error?: Error): void {
-    this.servicos.db = status;
+  set(service: keyof Servicos, status: StatusServico, error?: Error): void {
+    this.servicos[service] = status;
     if (error) {
-      logger.error(`Banco de dados falhou: ${error.message}`);
+      logger.error({ err: error }, `${service} falho`);
     }
     this.tryFlush();
   }
-
+  
   /**
    * Calcula o status agregado do sistema com base em todos os serviços.
    *
@@ -110,14 +113,16 @@ export class Health {
   private tryFlush(): void {
     const status = this.statusSistema();
     switch (status) {
-      case 'degraded':
+      case 'degraded': {
         const pendingDegradados = this.callbacksDegradados.splice(0);
         for (const fn of pendingDegradados) fn();
         break;
-      case 'healthy':
+      }
+      case 'healthy': {
         const pending = this.callbacks.splice(0);
         for (const fn of pending) fn();
         break;
+      }
       default:
         return; // Não processa callbacks enquanto o sistema estiver carregando
     }
@@ -139,6 +144,8 @@ export class Health {
     return {
       status: this.statusSistema(),
       servicos: { ...this.servicos },
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
     };
   }
 
@@ -204,7 +211,7 @@ export class Health {
  * import { health } from './health';
  *
  * health.quandoSaudavel(() => startServer());
- * health.setBd('healthy');
+ * health.set('db', 'healthy');
  * ```
  */
 export const health = Object.freeze(new Health());
