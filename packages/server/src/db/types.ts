@@ -54,10 +54,10 @@ export interface ColunasSchemaTable {
   nome: string;
   label: string;
   tipo: string;
-  obrigatorio: Generated<boolean>;
-  visibilidade: Generated<string>;
+  obrigatorio: boolean;
+  visibilidade: string;
   visivel_para: string[] | null;
-  ordem: Generated<number>;
+  ordem: number;
 }
 
 /**
