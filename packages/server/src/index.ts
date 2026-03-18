@@ -4,6 +4,7 @@ import { router as healthRouter } from "./routes/health";
 import { health } from "./health";
 import { logger } from "./logger";
 import { requestLoggerMiddleware } from "./middlewares/requestLogger";
+import { errorHandler } from "./middlewares/errorHandler";
 
 /**
  * Encerra o sistema de forma controlada ao receber um sinal do sistema operacional.
@@ -85,6 +86,12 @@ const webServer = app.listen(webPort, () => {
 health.quandoSaudavel(async () => {
   const { router: adminRouter } = await import("./routes/admin");
   app.use(`/admin`, adminRouter);
+
+  // necessário tomar cuidado com esta forma de gerenciar os erros, pois
+  // se um dia houver mais pontos de inicialização de rotas ou middlewares, pode ser
+  // fácil esquecer de adicionar.
+  app.use(errorHandler);
+  
   logger.info('Sistema saudável — rotas de admin registradas');
 });
 

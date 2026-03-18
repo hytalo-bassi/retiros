@@ -3,8 +3,9 @@ import { EventoService } from "../db/services/evento.service";
 import { EventoRepository } from "../db/services/repository/evento.repo";
 import { SchemaRepository } from "../db/services/repository/schema.repo";
 import { SchemaService } from "../db/services/schema.service";
-import { logger } from "../logger";
 import { Request, Response } from "express";
+import { asyncHandler } from "../utils/asyncHandler";
+import { Errors } from "../utils/AppErrors";
 
 const eventoRepo = new EventoRepository(pegarBd());
 const schemaRepo = new SchemaRepository(pegarBd());
@@ -36,15 +37,11 @@ const eventoService = new EventoService(eventoRepo, schemaService);
  * { "error": "Erro ao listar eventos", "requestId": "abc-123" }
  * ```
  */
-export async function listarEventos(req: Request, res: Response) {
-  try {
-    const eventos = await eventoService.pegarEventos();
-    res.status(200).json({ eventos });
-  } catch (error) {
-    logger.error({ err: error, path: req.path, method: req.method }, "Erro ao listar eventos");
-    res.status(500).json({ error: "Erro ao listar eventos", requestId: req.id });
-  }
-}
+export const listarEventos = asyncHandler(async (req, res) => {
+  const eventos = await eventoService.pegarEventos();
+  res.status(200).json({ eventos });
+});
+
 
 /**
  * Cria um novo evento e provisiona toda a sua infraestrutura no banco de dados.
@@ -107,25 +104,17 @@ export async function listarEventos(req: Request, res: Response) {
  * ```
  *
  */
-export async function criarEvento(req: Request, res: Response) {
-  try {
-    const r = await eventoService.criar(
-      req.body.slug,
-      req.body.nome,
-      req.body.criado_por,
-      req.body.padrao,
-      req.body.colunas,
-      req.body.inscricoes_abertas_de,
-      req.body.inscricoes_abertas_ate,
-    );
+export const criarEvento = asyncHandler(async (req, res) => {
+  const { slug, nome, criado_por, padrao, colunas,
+          inscricoes_abertas_de, inscricoes_abertas_ate } = req.body;
 
-    if (!r) {
-      return res.status(409).json({ error: "Slug já existe" });
-    }
+  const slugExiste = await eventoService.slugExiste(slug);
+  if (slugExiste) throw Errors.conflict('Slug já existe');
 
-    res.status(201).json({ evento: r });
-  } catch (error) {
-    logger.error({ err: error, path: req.path, method: req.method }, "Erro ao criar evento");
-    res.status(500).json({ error: "Erro ao criar evento", requestId: req.id });
-  }
-}
+  const evento = await eventoService.criar(
+    slug, nome, criado_por, padrao, colunas,
+    inscricoes_abertas_de, inscricoes_abertas_ate
+  );
+
+  res.status(201).json({ evento });
+});
