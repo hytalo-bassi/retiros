@@ -1,0 +1,1 @@
+export type AppViews = 'dashboard' | 'eventos' | 'participantes' | 'form' | 'relatorio'
