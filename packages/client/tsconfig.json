@@ -1,14 +1,7 @@
 {
-  "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    "outDir": "./dist",
-    "rootDir": "./src",
-    "paths": {
-      "@app/shared": ["../shared/src/index.ts"]
-    }
-  },
-  "include": ["src/**/*"],
+  "files": [],
   "references": [
-    { "path": "../shared" }
+    { "path": "./tsconfig.app.json" },
+    { "path": "./tsconfig.node.json" }
   ]
 }
