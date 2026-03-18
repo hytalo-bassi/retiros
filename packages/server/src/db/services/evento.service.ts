@@ -227,4 +227,24 @@ export class EventoService {
   async pegarEventos() {
     return this.eventoRepository.todosEventos();
   }
+
+  /**
+   * Verifica se um evento com o slug fornecido já existe no sistema.
+   *
+   * @param slug - Slug do evento a ser verificado.
+   * @returns `true` se o evento existe, `false` caso contrário.
+   *
+   * @example
+   * ```ts
+   * const existe = await service.slugExiste('retiro-2025');
+   *
+   * if (existe) {
+   *   throw Errors.conflict('Evento com este slug já existe');
+   * }
+   * ```
+   */
+  async slugExiste(slug: string): Promise<boolean> {
+    const evento = await this.eventoRepository.acharPorSlug(slug);
+    return evento !== undefined;
+  }
 }
