@@ -2,6 +2,7 @@ import { iniciarBd, pegarBd } from "./db/database";
 import express from "express";
 import { router as healthRouter } from "./routes/health";
 import { health } from "./health";
+import cors from "cors";
 import { logger } from "./logger";
 import { requestLoggerMiddleware } from "./middlewares/requestLogger";
 import { errorHandler } from "./middlewares/errorHandler";
@@ -56,6 +57,9 @@ iniciarBd()
 // que todas as requisições sejam logadas, inclusive as malformadas.
 // ---------------------------------------------------------------------------
 app.use(requestLoggerMiddleware);
+app.use(cors({
+  origin: process.env.CLIENT_URL,
+}));
 app.use(express.json());
 
 // ---------------------------------------------------------------------------
