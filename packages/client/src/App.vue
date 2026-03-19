@@ -22,7 +22,7 @@ const currentView = ref<AppViews>('dashboard')
 
 <template>
   <Sidebar :active-view="currentView" @update:active-view="currentView = $event"/>
-  <main>
+  <main class="flex-1">
     <component :is="views[currentView]" />
   </main>
 </template>
