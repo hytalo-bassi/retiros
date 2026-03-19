@@ -3,6 +3,7 @@ import express from "express";
 import { router as healthRouter } from "./routes/health";
 import { health } from "./health";
 import cors from "cors";
+import "dotenv/config"; 
 import { logger } from "./logger";
 import { requestLoggerMiddleware } from "./middlewares/requestLogger";
 import { errorHandler } from "./middlewares/errorHandler";
