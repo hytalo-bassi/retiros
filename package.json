@@ -5,10 +5,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "all:dev": "pnpm --parallel -r dev"
   },
   "keywords": [],
-  "author": "",
+  "author": "Hytalo Bassi",
   "license": "ISC",
   "devDependencies": {
     "tsx": "^4.21.0"

@@ -10,12 +10,14 @@
   },
   "dependencies": {
     "@app/shared": "workspace:*",
+    "cors": "^2.8.6",
     "express": "^5.2.1",
     "kysely": "^0.28.12",
     "pg": "^8.20.0",
     "pino": "^10.3.1"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/pg": "^8.18.0",
     "pino-pretty": "^13.1.3",
