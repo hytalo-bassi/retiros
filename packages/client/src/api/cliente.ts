@@ -1,21 +1,38 @@
-import axios, { type AxiosInstance, type AxiosResponse } from "axios";
+import axios, { type AxiosInstance } from "axios";
+import { consola } from "consola";
 
-const apiClient: AxiosInstance = axios.create({
+const logger = consola.withTag("api");
+
+const clienteApi: AxiosInstance = axios.create({
   baseURL: `${import.meta.env.VITE_API_BASE_URL}/`,
   timeout: 5000,
 });
 
-const clienteApi = apiClient;
-
 clienteApi.interceptors.request.use((config) => {
-  console.log(`[Request] ${config.method?.toUpperCase()} ${config.url}`);
+  logger.info({
+    message: "Requisição",
+    method: config.method?.toUpperCase(),
+    url: config.url,
+  });
   return config;
 });
 
 clienteApi.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    logger.success({
+      message: "Resposta",
+      status: response.status,
+      url: response.config.url,
+    });
+    return response;
+  },
   (error) => {
-    console.error("[Error]", error.response?.status, error.message);
+    logger.error({
+      message: "Requisição falhou",
+      status: error.response?.status,
+      url: error.config?.url,
+      cause: error.message,
+    });
     return Promise.reject(error);
   }
 );

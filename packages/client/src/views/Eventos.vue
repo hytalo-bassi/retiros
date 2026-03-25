@@ -1,6 +1,12 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
+import consola from 'consola';
+import { adicionarEvento, getEventos } from '../api/services/evento.service';
+import type { Evento } from '../types/eventos';
 
+const eventos = ref<Evento[]>([]);
+const loading = ref(false);
+const erro = ref<string | null>(null);
 const adicionarEventos = ref(false);
 const nomeEvento = ref('');
 const slugEvento = ref('');
@@ -33,6 +39,48 @@ function removerCampo(id: number) {
   camposPersonalizados.value = camposPersonalizados.value.filter(c => c.id !== id);
 }
 
+async function registrarEvento() {
+  loading.value = true;
+  erro.value = null;
+  try {
+    await adicionarEvento({
+      slug: slugEvento.value,
+      nome: nomeEvento.value,
+      criado_por: 2,
+      padrao: false,
+      colunas: camposPersonalizados.value.map(c => ({
+        nome: c.nome,
+        label: c.nome,
+        tipo: c.tipo,
+        obrigatorio: false,
+        visibilidade: 'public',
+        visivel_para: [],
+      })),
+      inscricoes_abertas_de: new Date(inscricoesDE.value).toISOString(),
+      inscricoes_abertas_ate: new Date(inscricoesAte.value).toISOString(),
+    });
+    adicionarEventos.value = false;
+    eventos.value = await getEventos();
+  } catch (e) {
+    erro.value = 'Erro ao registrar evento.';
+  } finally {
+    loading.value = false;
+  }
+}
+
+
+onMounted(async () => {
+  loading.value = true;
+  try {
+    eventos.value = await getEventos();
+  } catch (e) {
+    erro.value = 'Erro ao carregar eventos.';
+    consola.error('Erro ao buscar eventos:', e);
+  } finally {
+    loading.value = false;
+  }
+});
+
 </script>
 
 <template>
@@ -55,7 +103,6 @@ function removerCampo(id: number) {
  
             <h2 class="text-white text-lg font-bold tracking-tight">Informações Básicas</h2>
  
-            <!-- Nome do Evento -->
             <div class="flex flex-col gap-2">
               <label class="text-xs font-semibold uppercase tracking-widest" style="color:#64748b;">
                 Nome do Evento <span class="text-red-400 ml-0.5">*</span>
@@ -72,7 +119,6 @@ function removerCampo(id: number) {
               />
             </div>
  
-            <!-- Apelido (URL Slug) -->
             <div class="flex flex-col gap-2">
               <div class="flex items-center justify-between">
                 <label class="text-xs font-semibold uppercase tracking-widest" style="color:#64748b;">
@@ -96,7 +142,6 @@ function removerCampo(id: number) {
               </div>
             </div>
  
-            <!-- Inscrições De / Até -->
             <div class="grid grid-cols-2 gap-4">
               <div class="flex flex-col gap-2">
                 <label class="text-xs font-semibold uppercase tracking-widest" style="color:#64748b;">
@@ -130,7 +175,6 @@ function removerCampo(id: number) {
         </div>
       </div>
  
-      <!-- ── CARD: Campos Personalizados ── -->
       <div class="rounded-2xl overflow-hidden my-4" style="background:#161b27; border:1px solid rgba(255,255,255,0.07);">
         <div class="flex">
           <div class="w-1 flex-shrink-0" style="background:linear-gradient(to bottom,#f472b6,#fb7185);"></div>
@@ -210,7 +254,7 @@ function removerCampo(id: number) {
       <div class="w-full flex flex-row">
         <div class="ml-auto">
           <button @click="adicionarEventos = false">Cancelar</button>
-          <button class="btn-primary font-bold ml-8">Registrar Evento</button>
+          <button @click="registrarEvento" class="btn-primary font-bold ml-8">Registrar Evento</button>
         </div>
       </div>
     </div>
@@ -233,7 +277,7 @@ function removerCampo(id: number) {
             <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5" style="color:#475569;" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
             <input class="search-input w-full" placeholder="Buscar evento..." style="width:100%;" />
           </div>
-          <span class="ml-auto">0 eventos encontrados</span>
+          <span class="ml-auto">{{ eventos.length }} eventos encontrados</span>
         </div>
         <div>
           <table class="w-full">
@@ -245,9 +289,9 @@ function removerCampo(id: number) {
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td class="py-3 px-6">Evento de Teste</td>
-                <td class="py-3 px-6">Rascunho</td>
+              <tr v-for="evento in eventos" :key="evento.id" class="hover:bg-gray-700 cursor-pointer transition-colors">
+                <td class="py-3 px-6">{{ evento.nome }}</td>
+                <td class="py-3 px-6">{{ evento.ativo ? 'Ativo' : 'Inativo' }}</td>
                 <td class="py-3 px-6">0</td>
               </tr>
             </tbody>
