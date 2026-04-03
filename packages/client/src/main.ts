@@ -2,12 +2,7 @@ import { createApp } from 'vue'
 import './style.css'
 import { consola } from "consola"
 import App from './App.vue'
-import clienteApi from './api/cliente'
-
-async function apiHealthcheck(): Promise<string> {
-  const response = await clienteApi.get(`/health/healthcheck`);
-  return response.data;
-}
+import { createRouter, createWebHistory } from 'vue-router'
 
 if (import.meta.env.PROD) {
   consola.info('Modo de produção ativado. Diminuindo logs de depuração.');
@@ -17,8 +12,12 @@ if (import.meta.env.PROD) {
   consola.level = 4; // Todos os logs
 }
 
-createApp(App).mount('#app');
-(async () => {
-  const health = await apiHealthcheck();
-  console.log(health);
-})();
+const app = createApp(App);
+
+const router = createRouter({
+  history: createWebHistory(),
+  routes: [{ path: '/', component: App }]
+})
+
+app.use(router);
+app.mount("#app");
