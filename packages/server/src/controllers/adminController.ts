@@ -6,11 +6,14 @@ import { SchemaService } from "../db/services/schema.service";
 import { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Errors } from "../utils/AppErrors";
+import { MetaService } from "../db/services/meta.service";
+import { MetaRepository } from "../db/services/repository/meta.repo";
 
 const eventoRepo = new EventoRepository(pegarBd());
 const schemaRepo = new SchemaRepository(pegarBd());
 const schemaService = new SchemaService(schemaRepo);
 const eventoService = new EventoService(eventoRepo, schemaService);
+const metaService = new MetaService(new MetaRepository(pegarBd()));
 
 /**
  * Lista todos os eventos cadastrados no sistema.
@@ -117,4 +120,16 @@ export const criarEvento = asyncHandler(async (req, res) => {
   );
 
   res.status(201).json({ evento });
+});
+
+
+export const listarCongregacoes = asyncHandler(async (req, res) => {
+  const congregacoes = await metaService.listarCongregacoes();
+  res.json(congregacoes);
+});
+
+export const criarCongregacao = asyncHandler(async (req, res) => {
+  const { nome } = req.body;
+  await metaService.criarCongregacao(nome);
+  res.status(204).send();
 });

@@ -156,3 +156,9 @@ export type NewSessaoJovem = Insertable<SessoesJovensTable>;
 export type Documento    = Selectable<DocumentosTable>;
 /** Tipo de escrita: payload para INSERT. */
 export type NewDocumento = Insertable<DocumentosTable>;
+
+export type InsertResultRetiro = {
+  codigo_unico: Generated<string>;
+  id: Generated<number>;
+  [key: string]: unknown;
+};

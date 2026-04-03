@@ -90,8 +90,10 @@ const webServer = app.listen(webPort, () => {
 // ---------------------------------------------------------------------------
 health.quandoSaudavel(async () => {
   const { router: adminRouter } = await import("./routes/admin");
+  const { router: publicRouter } = await import("./routes/public");
+  
   app.use(`/admin`, adminRouter);
-
+  app.use('/', publicRouter);
   // necessário tomar cuidado com esta forma de gerenciar os erros, pois
   // se um dia houver mais pontos de inicialização de rotas ou middlewares, pode ser
   // fácil esquecer de adicionar.

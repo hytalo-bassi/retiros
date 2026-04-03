@@ -1,6 +1,6 @@
-import { Kysely, sql } from 'kysely';
-import { logger } from '../logger';
-import type { Database } from './types';
+import { Kysely, sql } from "kysely";
+import { logger } from "../logger";
+import type { Database } from "./types";
 
 /**
  * Garante que um schema PostgreSQL existe, criando-o caso ainda não exista.
@@ -11,7 +11,10 @@ import type { Database } from './types';
  * @param db     - Instância do Kysely conectada ao banco de dados.
  * @param schema - Nome do schema a ser verificado/criado (ex.: `_meta`, `_sistema`).
  */
-async function conferirEsquema(db: Kysely<Database>, schema: string): Promise<void> {
+async function conferirEsquema(
+  db: Kysely<Database>,
+  schema: string,
+): Promise<void> {
   await sql`CREATE SCHEMA IF NOT EXISTS ${sql.id(schema)}`.execute(db);
   logger.debug(`Esquema "${schema}" verificado.`);
 }
@@ -32,73 +35,95 @@ async function conferirEsquema(db: Kysely<Database>, schema: string): Promise<vo
  */
 async function conferirTabelaMeta(db: Kysely<Database>): Promise<void> {
   await db.schema
-    .withSchema('_meta')
-    .createTable('congregacoes')
+    .withSchema("_meta")
+    .createTable("congregacoes")
     .ifNotExists()
-    .addColumn('id', 'serial', (col) => col.primaryKey())
-    .addColumn('nome', 'text', (col) => col.notNull())
+    .addColumn("id", "serial", (col) => col.primaryKey())
+    .addColumn("nome", "text", (col) => col.notNull())
     .execute();
 
   await db.schema
-    .withSchema('_meta')
-    .createTable('usuarios_admin')
+    .withSchema("_meta")
+    .createTable("usuarios_admin")
     .ifNotExists()
-    .addColumn('id', 'serial', (col) => col.primaryKey())
-    .addColumn('nome', 'text', (col) => col.notNull())
-    .addColumn('login', 'text', (col) => col.notNull().unique())
-    .addColumn('senha_hash', 'text', (col) => col.notNull())
-    .addColumn('funcao', 'text', (col) => col.notNull())
-    .addColumn('ativo', 'boolean', (col) => col.notNull().defaultTo(true))
-    .addColumn('senha_inicial', 'boolean', (col) => col.notNull().defaultTo(true))
-    .addColumn('criado_em', 'timestamp', (col) => col.notNull().defaultTo(sql`NOW()`))
-    .addColumn('congregacao_id', 'integer', (col) => col.references('_meta.congregacoes.id'))
-    .addColumn('criado_por', 'integer', (col) => col.references('_meta.usuarios_admin.id'))
+    .addColumn("id", "serial", (col) => col.primaryKey())
+    .addColumn("nome", "text", (col) => col.notNull())
+    .addColumn("login", "text", (col) => col.notNull().unique())
+    .addColumn("senha_hash", "text", (col) => col.notNull())
+    .addColumn("funcao", "text", (col) => col.notNull())
+    .addColumn("ativo", "boolean", (col) => col.notNull().defaultTo(true))
+    .addColumn("senha_inicial", "boolean", (col) =>
+      col.notNull().defaultTo(true),
+    )
+    .addColumn("criado_em", "timestamp", (col) =>
+      col.notNull().defaultTo(sql`NOW()`),
+    )
+    .addColumn("congregacao_id", "integer", (col) =>
+      col.references("_meta.congregacoes.id"),
+    )
+    .addColumn("criado_por", "integer", (col) =>
+      col.references("_meta.usuarios_admin.id"),
+    )
     .execute();
 
   await db.schema
-    .withSchema('_meta')
-    .createTable('eventos')
+    .withSchema("_meta")
+    .createTable("eventos")
     .ifNotExists()
-    .addColumn('id', 'serial', (col) => col.primaryKey())
-    .addColumn('slug', 'text', (col) => col.notNull().unique())
-    .addColumn('nome', 'text', (col) => col.notNull())
-    .addColumn('ativo', 'boolean', (col) => col.notNull().defaultTo(true))
-    .addColumn('padrao', 'boolean', (col) => col.notNull().defaultTo(false))
-    .addColumn('inscricoes_abertas', 'boolean', (col) => col.notNull().defaultTo(false))
-    .addColumn('inscricoes_abertas_de', 'timestamp')
-    .addColumn('inscricoes_abertas_ate', 'timestamp')
-    .addColumn('criado_em', 'timestamp', (col) => col.notNull().defaultTo(sql`NOW()`))
-    .addColumn('criado_por', 'integer', (col) => col.references('_meta.usuarios_admin.id'))
+    .addColumn("id", "serial", (col) => col.primaryKey())
+    .addColumn("slug", "text", (col) => col.notNull().unique())
+    .addColumn("nome", "text", (col) => col.notNull())
+    .addColumn("ativo", "boolean", (col) => col.notNull().defaultTo(true))
+    .addColumn("padrao", "boolean", (col) => col.notNull().defaultTo(false))
+    .addColumn("inscricoes_abertas", "boolean", (col) =>
+      col.notNull().defaultTo(false),
+    )
+    .addColumn("inscricoes_abertas_de", "timestamp")
+    .addColumn("inscricoes_abertas_ate", "timestamp")
+    .addColumn("criado_em", "timestamp", (col) =>
+      col.notNull().defaultTo(sql`NOW()`),
+    )
+    .addColumn("criado_por", "integer", (col) =>
+      col.references("_meta.usuarios_admin.id"),
+    )
     .execute();
 
   await db.schema
-    .withSchema('_meta')
-    .createTable('colunas_schema')
+    .withSchema("_meta")
+    .createTable("colunas_schema")
     .ifNotExists()
-    .addColumn('id', 'serial', (col) => col.primaryKey())
-    .addColumn('evento_id', 'integer', (col) => col.notNull().references('_meta.eventos.id'))
-    .addColumn('nome', 'text', (col) => col.notNull())
-    .addColumn('label', 'text', (col) => col.notNull())
-    .addColumn('tipo', 'text', (col) => col.notNull())
-    .addColumn('obrigatorio', 'boolean', (col) => col.notNull().defaultTo(true))
-    .addColumn('visibilidade', 'text', (col) => col.notNull().defaultTo('public'))
-    .addColumn('visivel_para', sql`text[]`)
-    .addColumn('ordem', 'integer', (col) => col.notNull().defaultTo(0))
+    .addColumn("id", "serial", (col) => col.primaryKey())
+    .addColumn("evento_id", "integer", (col) =>
+      col.notNull().references("_meta.eventos.id").onDelete("cascade"),
+    )
+    .addColumn("nome", "text", (col) => col.notNull())
+    .addColumn("label", "text", (col) => col.notNull())
+    .addColumn("tipo", "text", (col) => col.notNull())
+    .addColumn("obrigatorio", "boolean", (col) => col.notNull().defaultTo(true))
+    .addColumn("visibilidade", "text", (col) =>
+      col.notNull().defaultTo("public"),
+    )
+    .addColumn("visivel_para", sql`text[]`)
+    .addColumn("ordem", "integer", (col) => col.notNull().defaultTo(0))
     .execute();
 
   await db.schema
-    .withSchema('_meta')
-    .createTable('audit_log')
+    .withSchema("_meta")
+    .createTable("audit_log")
     .ifNotExists()
-    .addColumn('id', 'serial', (col) => col.primaryKey())
-    .addColumn('evento_slug', 'text')
-    .addColumn('usuario_id', 'integer', (col) => col.references('_meta.usuarios_admin.id'))
-    .addColumn('acao', 'text', (col) => col.notNull())
-    .addColumn('entidade', 'text')
-    .addColumn('entidade_id', 'text')
-    .addColumn('payload', 'jsonb')
-    .addColumn('ip', 'text')
-    .addColumn('criado_em', 'timestamp', (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn("id", "serial", (col) => col.primaryKey())
+    .addColumn("evento_slug", "text")
+    .addColumn("usuario_id", "integer", (col) =>
+      col.references("_meta.usuarios_admin.id"),
+    )
+    .addColumn("acao", "text", (col) => col.notNull())
+    .addColumn("entidade", "text")
+    .addColumn("entidade_id", "text")
+    .addColumn("payload", "jsonb")
+    .addColumn("ip", "text")
+    .addColumn("criado_em", "timestamp", (col) =>
+      col.notNull().defaultTo(sql`NOW()`),
+    )
     .execute();
 
   logger.debug('Tabelas do esquema "_meta" verificadas.');
@@ -116,29 +141,35 @@ async function conferirTabelaMeta(db: Kysely<Database>): Promise<void> {
  */
 async function conferirTabelaSistema(db: Kysely<Database>): Promise<void> {
   await db.schema
-    .withSchema('_sistema')
-    .createTable('sessoes_jovens')
+    .withSchema("_sistema")
+    .createTable("sessoes_jovens")
     .ifNotExists()
-    .addColumn('id', 'serial', (col) => col.primaryKey())
-    .addColumn('evento_slug', 'text', (col) => col.notNull())
-    .addColumn('token', 'text', (col) => col.notNull().unique())
-    .addColumn('expira_em', 'timestamp', (col) => col.notNull())
-    .addColumn('criado_em', 'timestamp', (col) => col.notNull().defaultTo(sql`NOW()`))
-    .addColumn('inscricao_codigo', 'uuid', (col) => col.notNull())
+    .addColumn("id", "serial", (col) => col.primaryKey())
+    .addColumn("evento_slug", "text", (col) => col.notNull())
+    .addColumn("token", "text", (col) => col.notNull().unique())
+    .addColumn("expira_em", "timestamp", (col) => col.notNull())
+    .addColumn("criado_em", "timestamp", (col) =>
+      col.notNull().defaultTo(sql`NOW()`),
+    )
+    .addColumn("inscricao_codigo", "uuid", (col) => col.notNull())
     .execute();
 
   await db.schema
-    .withSchema('_sistema')
-    .createTable('documentos')
+    .withSchema("_sistema")
+    .createTable("documentos")
     .ifNotExists()
-    .addColumn('id', 'serial', (col) => col.primaryKey())
-    .addColumn('nome', 'text', (col) => col.notNull())
-    .addColumn('caminho', 'text', (col) => col.notNull())
-    .addColumn('enviado_por', 'text', (col) => col.notNull())
-    .addColumn('evento_slug', 'text', (col) => col.notNull())
-    .addColumn('inscricao_codigo', 'uuid', (col) => col.notNull())
-    .addColumn('lider_id', 'integer', (col) => col.references('_meta.usuarios_admin.id'))
-    .addColumn('enviado_em', 'timestamp', (col) => col.notNull().defaultTo(sql`NOW()`))
+    .addColumn("id", "serial", (col) => col.primaryKey())
+    .addColumn("nome", "text", (col) => col.notNull())
+    .addColumn("caminho", "text", (col) => col.notNull())
+    .addColumn("enviado_por", "text", (col) => col.notNull())
+    .addColumn("evento_slug", "text", (col) => col.notNull())
+    .addColumn("inscricao_codigo", "uuid", (col) => col.notNull())
+    .addColumn("lider_id", "integer", (col) =>
+      col.references("_meta.usuarios_admin.id"),
+    )
+    .addColumn("enviado_em", "timestamp", (col) =>
+      col.notNull().defaultTo(sql`NOW()`),
+    )
     .execute();
 
   logger.debug('Tabelas do esquema "_sistema" verificadas.');
@@ -167,14 +198,16 @@ async function conferirTabelaSistema(db: Kysely<Database>): Promise<void> {
  * // Banco de dados pronto — seguro para iniciar a aplicação.
  * ```
  */
-export async function conferirEConstruirInfra(db: Kysely<Database>): Promise<void> {
-  logger.info('Conferindo estrutura do banco de dados...');
+export async function conferirEConstruirInfra(
+  db: Kysely<Database>,
+): Promise<void> {
+  logger.info("Conferindo estrutura do banco de dados...");
 
-  await conferirEsquema(db, '_meta');
+  await conferirEsquema(db, "_meta");
   await conferirTabelaMeta(db);
 
-  await conferirEsquema(db, '_sistema');
+  await conferirEsquema(db, "_sistema");
   await conferirTabelaSistema(db);
 
-  logger.info('Infraestrutura do banco de dados correta.');
+  logger.info("Infraestrutura do banco de dados correta.");
 }

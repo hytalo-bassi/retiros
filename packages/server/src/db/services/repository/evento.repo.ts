@@ -383,7 +383,7 @@ export class EventoRepository {
         col.references('_meta.congregacoes.id')
       )
       .addColumn('equipe_id', 'integer', (col) =>
-        col.references(`${slug}.equipes.id`)
+        col.references(`${slug}.equipes.id`).onDelete('set null')
       )
       .addColumn('cancelado', 'boolean', (col) => col.defaultTo(false))
       .addColumn('motivo_cancelamento', 'text')
@@ -467,7 +467,7 @@ export class EventoRepository {
       .ifNotExists()
       .addColumn('id', 'serial', (col) => col.primaryKey())
       .addColumn('inscricao_codigo', 'uuid', (col) =>
-        col.notNull().references(`${slug}.inscricoes.codigo_unico`)
+        col.notNull().references(`${slug}.inscricoes.codigo_unico`).onDelete('cascade')
       )
       .addColumn('tipo', 'text', (col) => col.notNull())
       .addColumn('modalidade', 'text')
@@ -530,7 +530,7 @@ export class EventoRepository {
         tipo = 'text';
     }
 
-    return builder.addColumn(campo.label, tipo, (col) =>
+    return builder.addColumn(campo.nome, tipo, (col) =>
       campo.obrigatorio ? col.notNull() : col,
     );
   }
