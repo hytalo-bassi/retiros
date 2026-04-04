@@ -2,7 +2,10 @@ import { Funcoes } from "@app/shared";
 import { MetaRepository } from "./repository/meta.repo";
 
 export class MetaService {
-  constructor(private metaRepository: MetaRepository) {}
+  private metaRepository: MetaRepository
+  constructor({ metaRepo }: { metaRepo: MetaRepository }) {
+    this.metaRepository = metaRepo;
+  }
 
   async listarCongregacoes() {
     return this.metaRepository.listarCongregacoes();

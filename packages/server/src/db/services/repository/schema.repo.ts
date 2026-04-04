@@ -10,14 +10,17 @@ import { ColunasSchemaTable, Database } from "../../types";
  *
  * @example
  * ```ts
- * const repo = new SchemaRepository(db);
+ * const repo = new SchemaRepository({ bd: db });
  *
  * const coluna = await repo.criar({ evento_id: 1, nome: 'email', ordem: 0 });
  * const colunas = await repo.acharPorEventoId(1);
  * ```
  */
 export class SchemaRepository {
-  constructor(private db: Kysely<Database>) {}
+  private db: Kysely<Database>;
+  constructor({ bd }: { bd: Kysely<Database> }) {
+    this.db = bd;
+  }
 
   /**
    * Insere uma nova coluna de schema no banco de dados.

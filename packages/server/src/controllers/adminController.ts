@@ -1,20 +1,12 @@
-import { pegarBd } from "../db/database";
 import { EventoService } from "../db/services/evento.service";
-import { EventoRepository } from "../db/services/repository/evento.repo";
-import { SchemaRepository } from "../db/services/repository/schema.repo";
-import { SchemaService } from "../db/services/schema.service";
 import { Request, Response } from "express";
 import { asyncHandler } from "../utils/asyncHandler";
 import { Errors } from "../utils/AppErrors";
 import { MetaService } from "../db/services/meta.service";
-import { MetaRepository } from "../db/services/repository/meta.repo";
+import container from "../container";
 
-const eventoRepo = new EventoRepository(pegarBd());
-const schemaRepo = new SchemaRepository(pegarBd());
-const schemaService = new SchemaService(schemaRepo);
-const eventoService = new EventoService(eventoRepo, schemaService);
-const metaRepo = new MetaRepository(pegarBd());
-const metaService = new MetaService(metaRepo);
+const eventoService = container.resolve<EventoService>("eventoService");
+const metaService = container.resolve<MetaService>("metaService");
 
 /**
  * Lista todos os eventos cadastrados no sistema.

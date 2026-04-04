@@ -1,5 +1,5 @@
 import { Kysely } from "kysely";
-import { Database, InsertResultRetiro } from "../../types";
+import { Database } from "../../types";
 import { logger } from "../../../logger";
 import { MetaRepository } from "./meta.repo";
 
@@ -11,7 +11,13 @@ type InscricaoResult = {
 };
 
 export class RetiroRepository {
-  constructor(private db: Kysely<Database>, private metaRepo: MetaRepository) {}
+  private db: Kysely<Database>;
+  private metaRepo: MetaRepository;
+  
+  constructor({ bd, metaRepo }: { bd: Kysely<Database>; metaRepo: MetaRepository }) {
+    this.db = bd;
+    this.metaRepo = metaRepo;
+  }
 
   async inscrever(
     slug: string,

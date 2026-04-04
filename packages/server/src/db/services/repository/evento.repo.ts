@@ -32,7 +32,10 @@ import { ColumnDataType, CreateTableBuilder, Kysely, sql } from "kysely";
  * ```
  */
 export class EventoRepository {
-  constructor(private db: Kysely<Database>) {}
+  private db: Kysely<Database>;
+  constructor({ bd }: { bd: Kysely<Database> }) {
+    this.db = bd;
+  }
 
   /**
    * Insere um novo evento no banco de dados.

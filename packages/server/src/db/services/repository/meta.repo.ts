@@ -4,7 +4,10 @@ import type { Funcoes } from "@app/shared";
 import { hashSenha } from "../../../utils/hashSenha";
 
 export class MetaRepository {
-  constructor(private db: Kysely<Database>) {}
+  private db: Kysely<Database>;
+  constructor({ bd }: { bd: Kysely<Database> }) {
+    this.db = bd;
+  }
 
   async listarCongregacoes() {
     return this.db.selectFrom("_meta.congregacoes").selectAll().execute();

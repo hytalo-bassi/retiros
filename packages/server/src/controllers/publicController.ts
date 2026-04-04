@@ -1,20 +1,14 @@
-import { pegarBd } from "../db/database";
+import container from "../container";
 import { EventoService } from "../db/services/evento.service";
-import { EventoRepository } from "../db/services/repository/evento.repo";
-import { MetaRepository } from "../db/services/repository/meta.repo";
 import { RetiroRepository } from "../db/services/repository/retiro.repo";
-import { SchemaRepository } from "../db/services/repository/schema.repo";
 import { SchemaService } from "../db/services/schema.service";
 import { logger } from "../logger";
 import { Errors } from "../utils/AppErrors";
 import { asyncHandler } from "../utils/asyncHandler";
 
-const eventoRepo = new EventoRepository(pegarBd());
-const schemaRepo = new SchemaRepository(pegarBd());
-const schemaService = new SchemaService(schemaRepo);
-const metaRepo = new MetaRepository(pegarBd());
-const retiroRepository = new RetiroRepository(pegarBd(), metaRepo);
-const eventoService = new EventoService(eventoRepo, schemaService);
+const schemaService = container.resolve<SchemaService>("schemaService");
+const retiroRepository = container.resolve<RetiroRepository>("retiroRepository");
+const eventoService = container.resolve<EventoService>("eventoService");
 
 export const pegarEvento = asyncHandler(async (req, res) => {
   const { slug } = req.params;

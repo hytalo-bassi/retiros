@@ -54,10 +54,15 @@ export type TipoColunasQuery =
  * ```
  */
 export class EventoService {
+  private eventoRepo: EventoRepository;
+  private schemaService: SchemaService;
+
   constructor(
-    private eventoRepository: EventoRepository,
-    private schemaService: SchemaService,
-  ) {}
+    { eventoRepo, schemaService }: { eventoRepo: EventoRepository; schemaService: SchemaService },
+  ) {
+    this.eventoRepo = eventoRepo;
+    this.schemaService = schemaService;
+  }
 
   /**
    * Cria um novo evento e provisiona toda a sua infraestrutura no banco de dados.
@@ -127,12 +132,12 @@ export class EventoService {
     inscricoesDe?: Date | null,
     inscricoesAte?: Date | null,
   ) {
-    if (await this.eventoRepository.acharPorSlug(slug)) {
+    if (await this.eventoRepo.acharPorSlug(slug)) {
       logger.warn({ slug }, 'Tentativa de criar evento com slug já existente');
       return;
     }
 
-    const r = await this.eventoRepository.criar({
+    const r = await this.eventoRepo.criar({
       slug,
       nome,
       criado_por: criadoPor,
@@ -141,13 +146,13 @@ export class EventoService {
     });
 
     if (padrao) {
-      await this.eventoRepository.definirPadraoTransacional(r.id);
+      await this.eventoRepo.definirPadraoTransacional(r.id);
     }
 
     await this.criarSchemaRetiro(slug);
-    await this.eventoRepository.criarTabelaEquipes(slug);
-    await this.eventoRepository.criarTabelaInscricoes(slug, colunas);
-    await this.eventoRepository.criarTabelaPagamentos(slug);
+    await this.eventoRepo.criarTabelaEquipes(slug);
+    await this.eventoRepo.criarTabelaInscricoes(slug, colunas);
+    await this.eventoRepo.criarTabelaPagamentos(slug);
 
     for (const campo of colunas) {
       await this.schemaService.criarCampo(r.id, campo, campo.visibilidade, campo.visivel_para);
@@ -171,7 +176,7 @@ export class EventoService {
    * ```
    */
   async criarSchemaRetiro(slug: string) {
-    return this.eventoRepository.criarEventoRetiro(slug);
+    return this.eventoRepo.criarEventoRetiro(slug);
   }
 
   /**
@@ -190,7 +195,7 @@ export class EventoService {
    * ```
    */
   async acharPorSlug(slug: string) {
-    return this.eventoRepository.acharPorSlug(slug);
+    return this.eventoRepo.acharPorSlug(slug);
   }
 
   /**
@@ -208,7 +213,7 @@ export class EventoService {
    * ```
    */
   async pegarPadrao() {
-    return this.eventoRepository.acharPadrao();
+    return this.eventoRepo.acharPadrao();
   }
 
   /**
@@ -225,7 +230,7 @@ export class EventoService {
    * ```
    */
   async pegarEventos() {
-    return this.eventoRepository.todosEventos();
+    return this.eventoRepo.todosEventos();
   }
 
   /**
@@ -244,7 +249,7 @@ export class EventoService {
    * ```
    */
   async slugExiste(slug: string): Promise<boolean> {
-    const evento = await this.eventoRepository.acharPorSlug(slug);
+    const evento = await this.eventoRepo.acharPorSlug(slug);
     return evento !== undefined;
   }
 }

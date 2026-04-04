@@ -39,7 +39,10 @@ export interface OpcoesPegarCampos {
  * ```
  */
 export class SchemaService {
-  constructor(private schemaRepository: SchemaRepository) {}
+  private schemaRepository: SchemaRepository;
+  constructor({ schemaRepo }: { schemaRepo: SchemaRepository }) {
+    this.schemaRepository = schemaRepo;
+  }
 
   /**
    * Retorna os campos de schema de um evento, aplicando filtro de visibilidade por perfil.
