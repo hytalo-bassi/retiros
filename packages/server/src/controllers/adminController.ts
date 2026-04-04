@@ -13,7 +13,8 @@ const eventoRepo = new EventoRepository(pegarBd());
 const schemaRepo = new SchemaRepository(pegarBd());
 const schemaService = new SchemaService(schemaRepo);
 const eventoService = new EventoService(eventoRepo, schemaService);
-const metaService = new MetaService(new MetaRepository(pegarBd()));
+const metaRepo = new MetaRepository(pegarBd());
+const metaService = new MetaService(metaRepo);
 
 /**
  * Lista todos os eventos cadastrados no sistema.
@@ -131,5 +132,20 @@ export const listarCongregacoes = asyncHandler(async (req, res) => {
 export const criarCongregacao = asyncHandler(async (req, res) => {
   const { nome } = req.body;
   await metaService.criarCongregacao(nome);
+  res.status(204).send();
+});
+
+// função async para testar criação de usuários admin
+export const criarAdmin = asyncHandler(async (req: Request, res: Response) => {
+  const {
+    nome,
+    login,
+    senha,
+    funcao,
+    congregacao,
+  } = req.body;
+  
+  await metaService.criarUsuarioAdm(nome, senha, funcao, login, congregacao);
+  
   res.status(204).send();
 });

@@ -7,3 +7,6 @@ export interface Campo {
     obrigatorio: boolean;
     ordem: number;
 }
+
+export type Funcoes = "líder" | "admin" | "tesoureiro";
+
